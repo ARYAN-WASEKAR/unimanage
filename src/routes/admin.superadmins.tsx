@@ -53,6 +53,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Database,
+  Download,
   Eye,
   EyeOff,
   KeyRound,
@@ -301,6 +302,33 @@ function SuperAdminsPage() {
   const activeCount = admins.filter((a) => a.status === "active").length;
   const superAdminCount = admins.filter((a) => a.role === "SUPER_ADMIN").length;
 
+  const exportSuperAdminsCSV = () => {
+    if (filteredAdmins.length === 0) {
+      toast.warning("No SuperAdmins to export.");
+      return;
+    }
+    const headers = ["ID", "Name", "Email", "Username", "Role", "Status", "Phone", "CreatedAt"];
+    const rows = filteredAdmins.map((a) => [
+      a.id,
+      `"${a.name}"`,
+      `"${a.email}"`,
+      `"${a.username}"`,
+      `"${a.role}"`,
+      `"${a.status}"`,
+      `"${a.phone || ""}"`,
+      `"${a.createdAt}"`,
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `unimanage_superadmins_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("SuperAdmins exported to CSV!");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner & MongoDB Status */}
@@ -315,6 +343,10 @@ function SuperAdminsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportSuperAdminsCSV}>
+            <Download className="mr-2 size-4" />
+            Export CSV
+          </Button>
           <Button variant="outline" size="sm" onClick={() => { loadData(); checkDb(); }} disabled={loading}>
             <RefreshCw className={`mr-2 size-4 ${loading ? "animate-spin" : ""}`} />
             Refresh Status

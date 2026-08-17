@@ -11,6 +11,7 @@ export interface ISuperAdmin extends Document {
   status: "active" | "inactive";
   phone?: string;
   avatar?: string;
+  clerkUserId?: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -59,6 +60,10 @@ const SuperAdminSchema = new Schema<ISuperAdmin>(
       default: "",
     },
     avatar: {
+      type: String,
+      default: "",
+    },
+    clerkUserId: {
       type: String,
       default: "",
     },

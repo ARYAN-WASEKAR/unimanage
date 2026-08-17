@@ -25,11 +25,13 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   MoreHorizontal,
   Pencil,
   Plus,
   Search,
   Trash2,
+  Upload,
   Users as UsersIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -101,15 +103,46 @@ function UsersPage() {
     setToDelete(null);
   };
 
+  const exportUsersCSV = () => {
+    if (filtered.length === 0) {
+      toast.warning("No users to export.");
+      return;
+    }
+    const headers = ["ID", "Name", "Email", "Username", "ServiceType", "Status", "ExpiryDate"];
+    const rows = filtered.map((u) => [
+      u.id,
+      `"${u.name}"`,
+      `"${u.email}"`,
+      `"${u.username}"`,
+      `"${u.service}"`,
+      `"${u.status}"`,
+      `"${u.expiryDate}"`,
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `unimanage_users_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Users exported to CSV!");
+  };
+
   return (
     <>
       <PageHeader
         title="Manage your users"
         subtitle="Create and manage all UniManage customers."
         action={
-          <Button onClick={openCreate}>
-            <Plus className="size-4" /> Create user
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={exportUsersCSV} className="gap-2">
+              <Download className="size-4" /> Export CSV
+            </Button>
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="size-4" /> Create user
+            </Button>
+          </div>
         }
       />
 

@@ -58,7 +58,7 @@ function NavLinks({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: 
       {NAV_ITEMS.map((item) => (
         <Link
           key={item.to}
-          to={item.to}
+          to={item.to as any}
           onClick={onNavigate}
           title={collapsed ? item.label : undefined}
           className={cn(

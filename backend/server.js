@@ -45,9 +45,25 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Clerk Webhook Listener Endpoint
+app.post("/api/webhooks/clerk", (req, res) => {
+  const event = req.body || {};
+  const eventType = event.type || "unknown";
+  console.log(`[Clerk Webhook Received]: ${eventType}`, event.data?.id || "");
+  
+  if (eventType === "user.created") {
+    console.log(`[Clerk Webhook] New user created: ${event.data?.email_addresses?.[0]?.email_address || ""}`);
+  } else if (eventType === "user.deleted") {
+    console.log(`[Clerk Webhook] User deleted: ${event.data?.id}`);
+  }
+
+  return res.json({ success: true, received: true, type: eventType });
+});
+
 // Mount Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/superadmin", authRoutes); // Aliased for /api/superadmin/login
+app.use("/api/superadmin", superAdminRoutes); // Aliased for /api/superadmin/create
 app.use("/api/superadmins", superAdminRoutes);
 
 // Start Express Server

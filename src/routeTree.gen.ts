@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSuperadminsRouteImport } from './routes/admin.superadmins'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users.$userId'
@@ -38,9 +40,19 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSuperadminsRoute = AdminSuperadminsRouteImport.update({
@@ -63,7 +75,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -72,7 +86,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
   '/admin': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -83,7 +99,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -95,7 +113,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/dashboard'
+    | '/admin/logs'
     | '/admin/plans'
+    | '/admin/settings'
     | '/admin/superadmins'
     | '/admin/'
     | '/admin/users/$userId'
@@ -104,7 +124,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/dashboard'
+    | '/admin/logs'
     | '/admin/plans'
+    | '/admin/settings'
     | '/admin/superadmins'
     | '/admin'
     | '/admin/users/$userId'
@@ -114,7 +136,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/dashboard'
+    | '/admin/logs'
     | '/admin/plans'
+    | '/admin/settings'
     | '/admin/superadmins'
     | '/admin/'
     | '/admin/users/$userId'
@@ -156,11 +180,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/plans': {
       id: '/admin/plans'
       path: '/plans'
       fullPath: '/admin/plans'
       preLoaderRoute: typeof AdminPlansRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/superadmins': {
@@ -189,7 +227,9 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminLogsRoute: typeof AdminLogsRoute
   AdminPlansRoute: typeof AdminPlansRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSuperadminsRoute: typeof AdminSuperadminsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
@@ -198,7 +238,9 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminLogsRoute: AdminLogsRoute,
   AdminPlansRoute: AdminPlansRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminSuperadminsRoute: AdminSuperadminsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
