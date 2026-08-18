@@ -7,6 +7,7 @@ export default defineConfig({
   },
   vite: {
     resolve: {
+      tsconfigPaths: true,
       alias: {
         "punycode/": "punycode",
       },

@@ -38,7 +38,7 @@ export const Route = createFileRoute("/admin/settings")({
   component: SystemSettingsPage,
 });
 
-export function SystemSettingsPage() {
+function SystemSettingsPage() {
   const { session, isClerkActive } = useAuth();
   const { log } = useStore();
   const { theme, toggle } = useTheme();

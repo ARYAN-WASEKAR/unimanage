@@ -133,6 +133,7 @@ export function UserFormDialog({
       phone: form.phone.trim(),
       username: form.username.trim() || form.email.split("@")[0]!,
       status: form.status,
+      role: "USER" as const,
       service: form.service,
       planId: form.planId,
       startDate: form.startDate,

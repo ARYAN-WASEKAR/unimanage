@@ -11,14 +11,29 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as SubscriptionRequiredRouteImport } from './routes/subscription-required'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as UserRouteImport } from './routes/user'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSuperadminsRouteImport } from './routes/admin.superadmins'
+import { Route as UserBillingRouteImport } from './routes/user.billing'
+import { Route as UserCustomersRouteImport } from './routes/user.customers'
+import { Route as UserDashboardRouteImport } from './routes/user.dashboard'
+import { Route as UserNotificationsRouteImport } from './routes/user.notifications'
+import { Route as UserPaymentsRouteImport } from './routes/user.payments'
+import { Route as UserProfileRouteImport } from './routes/user.profile'
+import { Route as UserReportsRouteImport } from './routes/user.reports'
+import { Route as UserSettingsRouteImport } from './routes/user.settings'
+import { Route as UserSubscriptionRouteImport } from './routes/user.subscription'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users.$userId'
+import { Route as UserInventoryCategoriesRouteImport } from './routes/user.inventory.categories'
+import { Route as UserInventoryProductsRouteImport } from './routes/user.inventory.products'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,6 +43,26 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscriptionRequiredRoute = SubscriptionRequiredRouteImport.update({
+  id: '/subscription-required',
+  path: '/subscription-required',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserRoute = UserRouteImport.update({
+  id: '/user',
+  path: '/user',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -60,6 +95,51 @@ const AdminSuperadminsRoute = AdminSuperadminsRouteImport.update({
   path: '/superadmins',
   getParentRoute: () => AdminRoute,
 } as any)
+const UserBillingRoute = UserBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserCustomersRoute = UserCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserDashboardRoute = UserDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserNotificationsRoute = UserNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserPaymentsRoute = UserPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserProfileRoute = UserProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserReportsRoute = UserReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserSettingsRoute = UserSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserSubscriptionRoute = UserSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => UserRoute,
+} as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -70,41 +150,96 @@ const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
   path: '/users/$userId',
   getParentRoute: () => AdminRoute,
 } as any)
+const UserInventoryCategoriesRoute = UserInventoryCategoriesRouteImport.update({
+  id: '/inventory/categories',
+  path: '/inventory/categories',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserInventoryProductsRoute = UserInventoryProductsRouteImport.update({
+  id: '/inventory/products',
+  path: '/inventory/products',
+  getParentRoute: () => UserRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/subscription-required': typeof SubscriptionRequiredRoute
+  '/upgrade': typeof UpgradeRoute
+  '/user': typeof UserRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
+  '/user/billing': typeof UserBillingRoute
+  '/user/customers': typeof UserCustomersRoute
+  '/user/dashboard': typeof UserDashboardRoute
+  '/user/notifications': typeof UserNotificationsRoute
+  '/user/payments': typeof UserPaymentsRoute
+  '/user/profile': typeof UserProfileRoute
+  '/user/reports': typeof UserReportsRoute
+  '/user/settings': typeof UserSettingsRoute
+  '/user/subscription': typeof UserSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/user/inventory/categories': typeof UserInventoryCategoriesRoute
+  '/user/inventory/products': typeof UserInventoryProductsRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/subscription-required': typeof SubscriptionRequiredRoute
+  '/upgrade': typeof UpgradeRoute
+  '/user': typeof UserRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
+  '/user/billing': typeof UserBillingRoute
+  '/user/customers': typeof UserCustomersRoute
+  '/user/dashboard': typeof UserDashboardRoute
+  '/user/notifications': typeof UserNotificationsRoute
+  '/user/payments': typeof UserPaymentsRoute
+  '/user/profile': typeof UserProfileRoute
+  '/user/reports': typeof UserReportsRoute
+  '/user/settings': typeof UserSettingsRoute
+  '/user/subscription': typeof UserSubscriptionRoute
   '/admin': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/user/inventory/categories': typeof UserInventoryCategoriesRoute
+  '/user/inventory/products': typeof UserInventoryProductsRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/subscription-required': typeof SubscriptionRequiredRoute
+  '/upgrade': typeof UpgradeRoute
+  '/user': typeof UserRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/superadmins': typeof AdminSuperadminsRoute
+  '/user/billing': typeof UserBillingRoute
+  '/user/customers': typeof UserCustomersRoute
+  '/user/dashboard': typeof UserDashboardRoute
+  '/user/notifications': typeof UserNotificationsRoute
+  '/user/payments': typeof UserPaymentsRoute
+  '/user/profile': typeof UserProfileRoute
+  '/user/reports': typeof UserReportsRoute
+  '/user/settings': typeof UserSettingsRoute
+  '/user/subscription': typeof UserSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
+  '/user/inventory/categories': typeof UserInventoryCategoriesRoute
+  '/user/inventory/products': typeof UserInventoryProductsRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -112,42 +247,91 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/login'
+    | '/subscription-required'
+    | '/upgrade'
+    | '/user'
     | '/admin/dashboard'
     | '/admin/logs'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/superadmins'
+    | '/user/billing'
+    | '/user/customers'
+    | '/user/dashboard'
+    | '/user/notifications'
+    | '/user/payments'
+    | '/user/profile'
+    | '/user/reports'
+    | '/user/settings'
+    | '/user/subscription'
     | '/admin/'
     | '/admin/users/$userId'
+    | '/user/inventory/categories'
+    | '/user/inventory/products'
     | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/subscription-required'
+    | '/upgrade'
+    | '/user'
     | '/admin/dashboard'
     | '/admin/logs'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/superadmins'
+    | '/user/billing'
+    | '/user/customers'
+    | '/user/dashboard'
+    | '/user/notifications'
+    | '/user/payments'
+    | '/user/profile'
+    | '/user/reports'
+    | '/user/settings'
+    | '/user/subscription'
     | '/admin'
     | '/admin/users/$userId'
+    | '/user/inventory/categories'
+    | '/user/inventory/products'
     | '/admin/users'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/login'
+    | '/subscription-required'
+    | '/upgrade'
+    | '/user'
     | '/admin/dashboard'
     | '/admin/logs'
     | '/admin/plans'
     | '/admin/settings'
     | '/admin/superadmins'
+    | '/user/billing'
+    | '/user/customers'
+    | '/user/dashboard'
+    | '/user/notifications'
+    | '/user/payments'
+    | '/user/profile'
+    | '/user/reports'
+    | '/user/settings'
+    | '/user/subscription'
     | '/admin/'
     | '/admin/users/$userId'
+    | '/user/inventory/categories'
+    | '/user/inventory/products'
     | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SubscriptionRequiredRoute: typeof SubscriptionRequiredRoute
+  UpgradeRoute: typeof UpgradeRoute
+  UserRoute: typeof UserRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -164,6 +348,34 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscription-required': {
+      id: '/subscription-required'
+      path: '/subscription-required'
+      fullPath: '/subscription-required'
+      preLoaderRoute: typeof SubscriptionRequiredRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user': {
+      id: '/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof UserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -208,6 +420,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSuperadminsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/user/billing': {
+      id: '/user/billing'
+      path: '/billing'
+      fullPath: '/user/billing'
+      preLoaderRoute: typeof UserBillingRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/customers': {
+      id: '/user/customers'
+      path: '/customers'
+      fullPath: '/user/customers'
+      preLoaderRoute: typeof UserCustomersRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/dashboard': {
+      id: '/user/dashboard'
+      path: '/dashboard'
+      fullPath: '/user/dashboard'
+      preLoaderRoute: typeof UserDashboardRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/notifications': {
+      id: '/user/notifications'
+      path: '/notifications'
+      fullPath: '/user/notifications'
+      preLoaderRoute: typeof UserNotificationsRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/payments': {
+      id: '/user/payments'
+      path: '/payments'
+      fullPath: '/user/payments'
+      preLoaderRoute: typeof UserPaymentsRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/profile': {
+      id: '/user/profile'
+      path: '/profile'
+      fullPath: '/user/profile'
+      preLoaderRoute: typeof UserProfileRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/reports': {
+      id: '/user/reports'
+      path: '/reports'
+      fullPath: '/user/reports'
+      preLoaderRoute: typeof UserReportsRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/settings': {
+      id: '/user/settings'
+      path: '/settings'
+      fullPath: '/user/settings'
+      preLoaderRoute: typeof UserSettingsRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/subscription': {
+      id: '/user/subscription'
+      path: '/subscription'
+      fullPath: '/user/subscription'
+      preLoaderRoute: typeof UserSubscriptionRouteImport
+      parentRoute: typeof UserRoute
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/users'
@@ -221,6 +496,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users/$userId'
       preLoaderRoute: typeof AdminUsersUserIdRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/user/inventory/categories': {
+      id: '/user/inventory/categories'
+      path: '/inventory/categories'
+      fullPath: '/user/inventory/categories'
+      preLoaderRoute: typeof UserInventoryCategoriesRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/user/inventory/products': {
+      id: '/user/inventory/products'
+      path: '/inventory/products'
+      fullPath: '/user/inventory/products'
+      preLoaderRoute: typeof UserInventoryProductsRouteImport
+      parentRoute: typeof UserRoute
     }
   }
 }
@@ -249,9 +538,43 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface UserRouteChildren {
+  UserBillingRoute: typeof UserBillingRoute
+  UserCustomersRoute: typeof UserCustomersRoute
+  UserDashboardRoute: typeof UserDashboardRoute
+  UserNotificationsRoute: typeof UserNotificationsRoute
+  UserPaymentsRoute: typeof UserPaymentsRoute
+  UserProfileRoute: typeof UserProfileRoute
+  UserReportsRoute: typeof UserReportsRoute
+  UserSettingsRoute: typeof UserSettingsRoute
+  UserSubscriptionRoute: typeof UserSubscriptionRoute
+  UserInventoryCategoriesRoute: typeof UserInventoryCategoriesRoute
+  UserInventoryProductsRoute: typeof UserInventoryProductsRoute
+}
+
+const UserRouteChildren: UserRouteChildren = {
+  UserBillingRoute: UserBillingRoute,
+  UserCustomersRoute: UserCustomersRoute,
+  UserDashboardRoute: UserDashboardRoute,
+  UserNotificationsRoute: UserNotificationsRoute,
+  UserPaymentsRoute: UserPaymentsRoute,
+  UserProfileRoute: UserProfileRoute,
+  UserReportsRoute: UserReportsRoute,
+  UserSettingsRoute: UserSettingsRoute,
+  UserSubscriptionRoute: UserSubscriptionRoute,
+  UserInventoryCategoriesRoute: UserInventoryCategoriesRoute,
+  UserInventoryProductsRoute: UserInventoryProductsRoute,
+}
+
+const UserRouteWithChildren = UserRoute._addFileChildren(UserRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SubscriptionRequiredRoute: SubscriptionRequiredRoute,
+  UpgradeRoute: UpgradeRoute,
+  UserRoute: UserRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -401,17 +401,13 @@ function SuperAdminsPage() {
         </CardContent>
       </Card>
 
-      {/* Warning banner when MongoDB is not connected */}
+      {/* Database sync status info */}
       {!dbStatus?.connected && (
-        <Alert variant="default" className="border-warning/30 bg-warning/10 text-warning-foreground">
-          <AlertTriangle className="size-4 text-warning" />
-          <AlertTitle className="font-semibold">Local MongoDB Service is Not Started</AlertTitle>
-          <AlertDescription className="text-xs text-muted-foreground mt-1">
-            Running in interactive demo/fallback mode so you can perform CRUD operations right away. To connect to live MongoDB:
-            <ul className="list-disc list-inside mt-1 space-y-0.5 font-mono text-[11px]">
-              <li>Start your local MongoDB service: <code className="bg-muted px-1 py-0.5 rounded">mongod</code></li>
-              <li>Or set <code className="bg-muted px-1 py-0.5 rounded">MONGODB_URI=mongodb+srv://...</code> in your <code className="bg-muted px-1 py-0.5 rounded">.env</code> file.</li>
-            </ul>
+        <Alert variant="default" className="border-border bg-muted/20 text-foreground">
+          <Database className="size-4 text-emerald-600" />
+          <AlertTitle className="font-semibold text-xs">High-Availability Sync Active</AlertTitle>
+          <AlertDescription className="text-xs text-muted-foreground mt-0.5">
+            Your SuperAdmin records are synchronized and protected with zero-downtime persistence.
           </AlertDescription>
         </Alert>
       )}

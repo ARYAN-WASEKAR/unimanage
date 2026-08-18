@@ -44,23 +44,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    let cancelled = false;
+
     if (isClerkLoaded && clerkUser) {
-      const email = clerkUser.primaryEmailAddress?.emailAddress || "admin@unimanage.app";
-      const clerkSession: Session = {
-        username:
-          clerkUser.username ||
-          clerkUser.firstName?.toLowerCase() ||
-          email.split("@")[0] ||
-          "superadmin",
-        name: clerkUser.fullName || clerkUser.firstName || "Super Admin",
-        email,
-        role: "SUPER_ADMIN",
+      const emailStr: string = clerkUser.primaryEmailAddress?.emailAddress || "";
+      const usernameStr: string = (
+        clerkUser.username ||
+        (clerkUser.firstName ? clerkUser.firstName.toLowerCase() : "") ||
+        (emailStr ? emailStr.split("@")[0] : "") ||
+        "user"
+      ) as string;
+      const nameStr: string = (clerkUser.fullName || clerkUser.firstName || "User") as string;
+
+      // 1. Instantly activate session to eliminate 2-4s spinner delay
+      const initialClerkSession: Session = {
+        username: usernameStr,
+        name: nameStr,
+        email: emailStr,
+        role: "USER",
         avatar: clerkUser.imageUrl,
         isClerk: true,
       };
-      setSession(clerkSession);
+      setSession(initialClerkSession);
       setReady(true);
-      return;
+
+      // 2. Perform background check to see if user has SuperAdmin role
+      import("@/lib/superadmin.server")
+        .then(({ verifySuperAdminAccessFn }) => verifySuperAdminAccessFn({ data: emailStr || usernameStr }))
+        .then((res) => {
+          if (cancelled) return;
+          if (res.isSuperAdmin) {
+            setSession((prev) => (prev ? { ...prev, role: res.role } : prev));
+          }
+        })
+        .catch(() => {});
+
+      return () => {
+        cancelled = true;
+      };
     }
 
     try {
@@ -70,7 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore corrupt session */
     }
     setReady(true);
-  }, [isClerkLoaded, clerkUser]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isClerkLoaded, clerkUser?.id]);
 
   const signIn: AuthValue["signIn"] = (username, password, remember) => {
     if (username.trim().toLowerCase() !== DEMO.username || password !== DEMO.password) return null;

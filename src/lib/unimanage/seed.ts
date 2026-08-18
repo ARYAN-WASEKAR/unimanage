@@ -1,12 +1,17 @@
 import { addDays, addMonths, iso } from "./dates";
 import type {
   ActivityLog,
+  Category,
+  Customer,
+  Invoice,
   Payment,
   Plan,
+  Product,
   Service,
   ServiceKey,
   UniData,
   User,
+  UserNotification,
 } from "./types";
 
 export const SERVICE_META: Record<ServiceKey, { name: string; emoji: string; tone: string }> = {
@@ -216,7 +221,6 @@ const NAMES: Array<[string, string]> = [
   ["Shreya Dutta", "shreya"],
 ];
 
-// Deterministic offsets so the demo always shows a healthy mix of statuses.
 const EXPIRY_OFFSETS = [
   380, 210, -12, 5, 96, 22, -45, 140, 3, 61, 28, 190, -6, 74, 15, 250, 9, 120, -30, 41,
   310, 18, 88, -3, 165, 26, 52, 400,
@@ -236,10 +240,13 @@ function buildUsers(): User[] {
       phone: `+91 9${(800000000 + i * 1234567).toString().slice(0, 9)}`,
       username: handle,
       status: i % 9 === 4 ? "inactive" : "active",
+      role: "USER",
       service: plan.service,
       planId: plan.id,
       startDate: iso(start),
       expiryDate: iso(expiry),
+      businessName: `${name.split(" ")[0]}'s ${plan.service.toUpperCase()} Store`,
+      businessAddress: `Suite ${100 + i * 4}, MG Road, Mumbai, IN`,
       createdAt: iso(addDays(start, -3)),
     } satisfies User;
   });
@@ -301,13 +308,158 @@ function buildLogs(users: User[]): ActivityLog[] {
   }));
 }
 
+function buildProducts(users: User[]): Product[] {
+  const sampleProducts = [
+    { name: "Paracetamol 500mg (10s)", category: "Medicines", price: 45, stock: 120, low: 20 },
+    { name: "Amoxicillin 250mg", category: "Antibiotics", price: 110, stock: 14, low: 20 },
+    { name: "Basmati Rice 5kg", category: "Grains", price: 450, stock: 45, low: 10 },
+    { name: "Fortune Sunflower Oil 1L", category: "Oils", price: 165, stock: 8, low: 15 },
+    { name: "Matte Lipstick Coral", category: "Cosmetics", price: 399, stock: 25, low: 5 },
+    { name: "Hair Care Serum 100ml", category: "Hair Care", price: 549, stock: 4, low: 10 },
+    { name: "Classmate Notebook A4", category: "Paper", price: 85, stock: 200, low: 30 },
+    { name: "Reynolds Ballpen (Blue)", category: "Pens", price: 10, stock: 500, low: 50 },
+  ];
+
+  const out: Product[] = [];
+  let counter = 1;
+  users.forEach((user) => {
+    sampleProducts.forEach((p, idx) => {
+      out.push({
+        id: `prod-${counter}`,
+        userId: user.id,
+        name: p.name,
+        category: p.category,
+        sku: `SKU-${1000 + counter}`,
+        price: p.price,
+        stock: p.stock + (counter % 10),
+        lowStockThreshold: p.low,
+        description: `High quality item for ${user.businessName || "store"}.`,
+        createdAt: iso(addDays(new Date(), -counter)),
+      });
+      counter++;
+    });
+  });
+  return out;
+}
+
+function buildCategories(users: User[]): Category[] {
+  const cats = ["Medicines", "Antibiotics", "Grains", "Oils", "Cosmetics", "Hair Care", "Paper", "Pens"];
+  const out: Category[] = [];
+  let counter = 1;
+  users.forEach((user) => {
+    cats.forEach((c) => {
+      out.push({
+        id: `cat-${counter}`,
+        userId: user.id,
+        name: c,
+        description: `All items under ${c}`,
+        createdAt: iso(addDays(new Date(), -10)),
+      });
+      counter++;
+    });
+  });
+  return out;
+}
+
+function buildCustomers(users: User[]): Customer[] {
+  const clientNames = ["Aarav Gupta", "Sunita Sharma", "Rakesh Verma", "Deepa Mehta", "Kunal Shah"];
+  const out: Customer[] = [];
+  let counter = 1;
+  users.forEach((user) => {
+    clientNames.forEach((cName, idx) => {
+      out.push({
+        id: `cust-${counter}`,
+        userId: user.id,
+        name: cName,
+        email: `${cName.toLowerCase().replace(" ", ".")}@client.com`,
+        phone: `+91 99${(10000000 + counter * 54321).toString().slice(0, 8)}`,
+        businessName: `${cName} Enterprise`,
+        address: `${12 + idx} Commercial Hub, Bandra West`,
+        createdAt: iso(addDays(new Date(), -idx * 3)),
+      });
+      counter++;
+    });
+  });
+  return out;
+}
+
+function buildInvoices(users: User[]): Invoice[] {
+  const statuses: Invoice["status"][] = ["PAID", "PAID", "PENDING", "OVERDUE", "CANCELLED"];
+  const out: Invoice[] = [];
+  let counter = 1;
+  const today = new Date();
+  users.forEach((user) => {
+    for (let i = 1; i <= 3; i++) {
+      out.push({
+        id: `inv-${counter}`,
+        userId: user.id,
+        customerId: `cust-${counter}`,
+        customerName: `Client ${counter}`,
+        invoiceNumber: `INV-2026-${(100 + counter).toString()}`,
+        items: [
+          { description: "Product Supply / Service", quantity: 2, unitPrice: 250, total: 500 },
+          { description: "Maintenance & Handling", quantity: 1, unitPrice: 150, total: 150 },
+        ],
+        totalAmount: 650,
+        status: statuses[counter % statuses.length]!,
+        date: iso(addDays(today, -i * 4)),
+        dueDate: iso(addDays(today, i * 10)),
+        createdAt: iso(addDays(today, -i * 4)),
+      });
+      counter++;
+    }
+  });
+  return out;
+}
+
+function buildNotifications(users: User[]): UserNotification[] {
+  const out: UserNotification[] = [];
+  let counter = 1;
+  users.forEach((user) => {
+    out.push(
+      {
+        id: `notif-${counter++}`,
+        userId: user.id,
+        title: "Welcome to UniManage!",
+        message: "Your subscription and business workspace are active.",
+        type: "system",
+        read: true,
+        createdAt: iso(addDays(new Date(), -15)),
+      },
+      {
+        id: `notif-${counter++}`,
+        userId: user.id,
+        title: "Low Stock Alert",
+        message: "Fortune Sunflower Oil stock is below the threshold limit (8 remaining).",
+        type: "stock",
+        read: false,
+        createdAt: iso(addDays(new Date(), -2)),
+      },
+      {
+        id: `notif-${counter++}`,
+        userId: user.id,
+        title: "Payment Received",
+        message: "Your recent subscription renewal payment of ₹999 was processed successfully.",
+        type: "payment",
+        read: false,
+        createdAt: iso(addDays(new Date(), -1)),
+      },
+    );
+  });
+  return out;
+}
+
 export function createSeedData(): UniData {
-  const users = buildUsers();
   return {
-    users,
+    users: [],
     plans,
     services,
-    payments: buildPayments(users),
-    logs: buildLogs(users),
+    payments: [],
+    logs: [],
+    products: [],
+    categories: [],
+    customers: [],
+    invoices: [],
+    notifications: [],
   };
 }

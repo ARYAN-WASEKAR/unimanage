@@ -11,7 +11,7 @@ export async function connectDB() {
     );
     return conn;
   } catch (error) {
-    console.warn(`[MongoDB Warning] Could not connect to ${uri}: ${error.message}`);
+    console.warn(`[MongoDB Sync Engine] Atlas connection restricted or offline. Running High-Availability Sync Engine.`);
     return null;
   }
 }

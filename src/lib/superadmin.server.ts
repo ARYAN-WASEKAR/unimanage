@@ -33,6 +33,35 @@ export interface SuperAdminResponse {
   isFallback?: boolean;
 }
 
+// Convert Mongoose document to 100% plain serializable object for TanStack Start / Seroval
+function toPlainAdmin(doc: any): SuperAdminResponse {
+  if (!doc) {
+    return {
+      id: `sa-${Date.now()}`,
+      name: "",
+      email: "",
+      username: "",
+      role: "SUPER_ADMIN",
+      status: "active",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  const obj = typeof doc.toObject === "function" ? doc.toObject() : doc;
+  return {
+    id: String(obj._id || obj.id || `sa-${Date.now()}`),
+    name: String(obj.name || ""),
+    email: String(obj.email || ""),
+    username: String(obj.username || ""),
+    role: (obj.role as "SUPER_ADMIN" | "ADMIN") || "SUPER_ADMIN",
+    status: (obj.status as "active" | "inactive") || "active",
+    phone: obj.phone ? String(obj.phone) : "",
+    createdAt: obj.createdAt ? new Date(obj.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: obj.updatedAt ? new Date(obj.updatedAt).toISOString() : new Date().toISOString(),
+    isFallback: Boolean(obj.isFallback),
+  };
+}
+
 // Global in-memory fallback store if MongoDB service is not started on host machine
 const fallbackAdmins: SuperAdminResponse[] = [
   {
@@ -45,18 +74,6 @@ const fallbackAdmins: SuperAdminResponse[] = [
     phone: "+1 800-555-0199",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isFallback: true,
-  },
-  {
-    id: "sa-fallback-2",
-    name: "Operations Admin",
-    email: "ops@unimanage.app",
-    username: "opsadmin",
-    role: "ADMIN",
-    status: "active",
-    phone: "+1 800-555-0244",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
     isFallback: true,
   },
 ];
@@ -98,9 +115,7 @@ export const getSuperAdminsFn = createServerFn({ method: "GET" }).handler(
       }
       const list = await SuperAdmin.find().sort({ createdAt: -1 });
       return {
-        admins: list.map(
-          (doc) => (doc.toJSON ? doc.toJSON() : (doc as any)) as unknown as SuperAdminResponse,
-        ),
+        admins: list.map((doc) => toPlainAdmin(doc)),
         isFallback: false,
       };
     } catch (err) {
@@ -113,6 +128,37 @@ export const getSuperAdminsFn = createServerFn({ method: "GET" }).handler(
   },
 );
 
+export const verifySuperAdminAccessFn = createServerFn({ method: "POST" })
+  .validator((emailOrUsername: string) => emailOrUsername)
+  .handler(async ({ data }): Promise<{ isSuperAdmin: boolean; role: "SUPER_ADMIN" | "ADMIN" | "USER"; status: string }> => {
+    const clean = (data || "").toLowerCase().trim();
+    if (!clean) return { isSuperAdmin: false, role: "USER", status: "unauthorized" };
+
+    const { connectToDatabase } = await import("@/lib/db");
+    const { SuperAdmin } = await import("@/models/SuperAdmin");
+
+    try {
+      await connectToDatabase();
+      const admin = await SuperAdmin.findOne({
+        $or: [{ email: clean }, { username: clean }],
+      });
+      if (admin && admin.status === "active") {
+        return { isSuperAdmin: true, role: admin.role, status: admin.status };
+      }
+    } catch {
+      /* fallback check below */
+    }
+
+    const fb = fallbackAdmins.find(
+      (a) => (a.email.toLowerCase() === clean || a.username.toLowerCase() === clean) && a.status === "active",
+    );
+    if (fb) {
+      return { isSuperAdmin: true, role: fb.role, status: fb.status };
+    }
+
+    return { isSuperAdmin: false, role: "USER", status: "unauthorized" };
+  });
+
 export const getSuperAdminByIdFn = createServerFn({ method: "GET" })
   .validator((id: string) => id)
   .handler(async ({ data }): Promise<SuperAdminResponse | null> => {
@@ -123,7 +169,7 @@ export const getSuperAdminByIdFn = createServerFn({ method: "GET" })
       await connectToDatabase();
       const admin = await SuperAdmin.findById(data);
       if (!admin) return null;
-      return (admin.toJSON ? admin.toJSON() : (admin as any)) as unknown as SuperAdminResponse;
+      return toPlainAdmin(admin);
     } catch {
       return fallbackAdmins.find((a) => a.id === data) || null;
     }
@@ -161,7 +207,7 @@ export const createSuperAdminFn = createServerFn({ method: "POST" })
       });
 
       await newAdmin.save();
-      return (newAdmin.toJSON ? newAdmin.toJSON() : (newAdmin as any)) as unknown as SuperAdminResponse;
+      return toPlainAdmin(newAdmin);
     } catch (err: any) {
       if (err.message && err.message.includes("already exists")) {
         throw err;
@@ -239,7 +285,7 @@ export const updateSuperAdminFn = createServerFn({ method: "POST" })
         }
 
         await admin.save();
-        return (admin.toJSON ? admin.toJSON() : (admin as any)) as unknown as SuperAdminResponse;
+        return toPlainAdmin(admin);
       }
     } catch (err: any) {
       if (err.message && err.message.includes("in use")) throw err;

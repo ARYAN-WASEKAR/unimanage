@@ -1,13 +1,13 @@
 import { LoginPage } from "@/components/LoginPage";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign In — UniManage Platform" },
+      { title: "Login — UniManage Unified Portal" },
       {
         name: "description",
-        content: "Access your UniManage User Workspace or Admin Management Portal.",
+        content: "Access User Workspace or SuperAdmin Control Room.",
       },
     ],
   }),

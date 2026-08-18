@@ -8,14 +8,22 @@ import {
   type ReactNode,
 } from "react";
 import { createSeedData } from "./seed";
-import type { ActivityLog, Payment, Plan, Service, UniData, User } from "./types";
+import type {
+  ActivityLog,
+  Category,
+  Customer,
+  Invoice,
+  Payment,
+  Plan,
+  Product,
+  Service,
+  UniData,
+  User,
+  UserNotification,
+} from "./types";
 
-const KEY = "unimanage.data.v1";
+const KEY = "unimanage.data.v3";
 
-/**
- * Demo persistence layer. Every mutation goes through these actions, so swapping
- * localStorage for a real backend later means changing only this file.
- */
 interface StoreValue extends UniData {
   hydrated: boolean;
   addUser: (u: Omit<User, "id" | "createdAt">) => User;
@@ -27,13 +35,42 @@ interface StoreValue extends UniData {
   addService: (s: Omit<Service, "id">) => void;
   updateService: (id: string, patch: Partial<Service>) => void;
   addPayment: (p: Omit<Payment, "id">) => void;
+  // Product CRUD
+  addProduct: (p: Omit<Product, "id" | "createdAt">) => Product;
+  updateProduct: (id: string, patch: Partial<Product>) => void;
+  deleteProduct: (id: string) => void;
+  // Category CRUD
+  addCategory: (c: Omit<Category, "id" | "createdAt">) => Category;
+  deleteCategory: (id: string) => void;
+  // Customer CRUD
+  addCustomer: (c: Omit<Customer, "id" | "createdAt">) => Customer;
+  updateCustomer: (id: string, patch: Partial<Customer>) => void;
+  deleteCustomer: (id: string) => void;
+  // Invoice CRUD
+  addInvoice: (inv: Omit<Invoice, "id" | "createdAt">) => Invoice;
+  updateInvoiceStatus: (id: string, status: Invoice["status"]) => void;
+  // Notifications
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: (userId: string) => void;
+  deleteNotification: (id: string) => void;
   log: (action: string, target: string, status?: ActivityLog["status"]) => void;
   reset: () => void;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
 
-const EMPTY: UniData = { users: [], plans: [], services: [], payments: [], logs: [] };
+const EMPTY: UniData = {
+  users: [],
+  plans: [],
+  services: [],
+  payments: [],
+  logs: [],
+  products: [],
+  categories: [],
+  customers: [],
+  invoices: [],
+  notifications: [],
+};
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<UniData>(EMPTY);
@@ -44,6 +81,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(KEY);
       next = raw ? (JSON.parse(raw) as UniData) : createSeedData();
+      if (!next.products || next.products.length === 0) {
+        next = createSeedData();
+      }
     } catch {
       next = createSeedData();
     }
@@ -62,7 +102,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setData((d) => ({
       ...d,
       logs: [
-        { id: `log-${Math.random().toString(36).slice(2, 9)}`, at: new Date().toISOString(), action, admin: "Super Admin", target, status },
+        {
+          id: `log-${Math.random().toString(36).slice(2, 9)}`,
+          at: new Date().toISOString(),
+          action,
+          admin: "Super Admin",
+          target,
+          status,
+        },
         ...d.logs,
       ].slice(0, 200),
     }));
@@ -83,8 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...d,
           users: d.users.map((u) => (u.id === uid ? { ...u, ...patch } : u)),
         })),
-      deleteUser: (uid) =>
-        setData((d) => ({ ...d, users: d.users.filter((u) => u.id !== uid) })),
+      deleteUser: (uid) => setData((d) => ({ ...d, users: d.users.filter((u) => u.id !== uid) })),
       addPlan: (p) => {
         const plan: Plan = { ...p, id: id("plan"), createdAt: new Date().toISOString().slice(0, 10) };
         setData((d) => ({ ...d, plans: [plan, ...d.plans] }));
@@ -101,6 +147,101 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           services: d.services.map((s) => (s.id === sid ? { ...s, ...patch } : s)),
         })),
       addPayment: (p) => setData((d) => ({ ...d, payments: [{ ...p, id: id("pay") }, ...d.payments] })),
+
+      // Product CRUD
+      addProduct: (p) => {
+        const prod: Product = {
+          ...p,
+          id: id("prod"),
+          createdAt: new Date().toISOString().slice(0, 10),
+        };
+        setData((d) => ({ ...d, products: [prod, ...(d.products || [])] }));
+        return prod;
+      },
+      updateProduct: (pid, patch) =>
+        setData((d) => ({
+          ...d,
+          products: (d.products || []).map((prod) =>
+            prod.id === pid
+              ? { ...prod, ...patch, updatedAt: new Date().toISOString().slice(0, 10) }
+              : prod,
+          ),
+        })),
+      deleteProduct: (pid) =>
+        setData((d) => ({ ...d, products: (d.products || []).filter((prod) => prod.id !== pid) })),
+
+      // Category CRUD
+      addCategory: (c) => {
+        const cat: Category = {
+          ...c,
+          id: id("cat"),
+          createdAt: new Date().toISOString().slice(0, 10),
+        };
+        setData((d) => ({ ...d, categories: [cat, ...(d.categories || [])] }));
+        return cat;
+      },
+      deleteCategory: (cid) =>
+        setData((d) => ({ ...d, categories: (d.categories || []).filter((cat) => cat.id !== cid) })),
+
+      // Customer CRUD
+      addCustomer: (c) => {
+        const cust: Customer = {
+          ...c,
+          id: id("cust"),
+          createdAt: new Date().toISOString().slice(0, 10),
+        };
+        setData((d) => ({ ...d, customers: [cust, ...(d.customers || [])] }));
+        return cust;
+      },
+      updateCustomer: (cid, patch) =>
+        setData((d) => ({
+          ...d,
+          customers: (d.customers || []).map((cust) =>
+            cust.id === cid ? { ...cust, ...patch } : cust,
+          ),
+        })),
+      deleteCustomer: (cid) =>
+        setData((d) => ({ ...d, customers: (d.customers || []).filter((cust) => cust.id !== cid) })),
+
+      // Invoice CRUD
+      addInvoice: (inv) => {
+        const newInv: Invoice = {
+          ...inv,
+          id: id("inv"),
+          createdAt: new Date().toISOString().slice(0, 10),
+        };
+        setData((d) => ({ ...d, invoices: [newInv, ...(d.invoices || [])] }));
+        return newInv;
+      },
+      updateInvoiceStatus: (invid, status) =>
+        setData((d) => ({
+          ...d,
+          invoices: (d.invoices || []).map((inv) =>
+            inv.id === invid ? { ...inv, status } : inv,
+          ),
+        })),
+
+      // Notifications
+      markNotificationRead: (nid) =>
+        setData((d) => ({
+          ...d,
+          notifications: (d.notifications || []).map((n) =>
+            n.id === nid ? { ...n, read: true } : n,
+          ),
+        })),
+      markAllNotificationsRead: (uid) =>
+        setData((d) => ({
+          ...d,
+          notifications: (d.notifications || []).map((n) =>
+            n.userId === uid ? { ...n, read: true } : n,
+          ),
+        })),
+      deleteNotification: (nid) =>
+        setData((d) => ({
+          ...d,
+          notifications: (d.notifications || []).filter((n) => n.id !== nid),
+        })),
+
       log,
       reset: () => setData(createSeedData()),
     }),

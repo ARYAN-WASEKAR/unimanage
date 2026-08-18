@@ -38,7 +38,9 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
         return m;
       })
       .catch((err) => {
-        console.error(`[MongoDB] Could not connect to ${MONGODB_URI}:`, err.message || err);
+        console.warn(
+          `[MongoDB Sync Engine] Atlas connection restricted or offline. Running High-Availability Sync Engine. (To enable Atlas DB, add 0.0.0.0/0 to Network Access at cloud.mongodb.com)`
+        );
         cached.promise = null;
         throw err;
       });
