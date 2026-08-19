@@ -21,11 +21,18 @@ import type {
   User,
   UserNotification,
 } from "./types";
+import {
+  createAdminUserFn,
+  deleteAdminUserFn,
+  getUsersListFn,
+  updateAdminUserFn,
+} from "@/lib/user.server";
 
 const KEY = "unimanage.data.v3";
 
 interface StoreValue extends UniData {
   hydrated: boolean;
+  syncUser: (u: User) => void;
   addUser: (u: Omit<User, "id" | "createdAt">) => User;
   updateUser: (id: string, patch: Partial<User>) => void;
   deleteUser: (id: string) => void;
@@ -89,6 +96,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     setData(next);
     setHydrated(true);
+
+    // Asynchronously fetch live users from MongoDB and merge them into store
+    getUsersListFn()
+      .then((res) => {
+        if (res && res.users && res.users.length > 0) {
+          setData((prev) => {
+            const existingMap = new Map(
+              prev.users.map((u) => [(u.email || u.username || u.id).toLowerCase(), u]),
+            );
+            // Merge MongoDB users (MongoDB takes priority for latest data)
+            for (const dbUser of res.users) {
+              const key = (dbUser.email || dbUser.username || dbUser.id).toLowerCase();
+              existingMap.set(key, { ...existingMap.get(key), ...dbUser });
+            }
+            return {
+              ...prev,
+              users: Array.from(existingMap.values()),
+            };
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -115,22 +144,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const syncUser = useCallback((syncedUser: User) => {
+    setData((d) => {
+      const idx = d.users.findIndex(
+        (u) =>
+          u.id === syncedUser.id ||
+          (syncedUser.email && u.email.toLowerCase() === syncedUser.email.toLowerCase()) ||
+          (syncedUser.username && u.username.toLowerCase() === syncedUser.username.toLowerCase()),
+      );
+      if (idx >= 0) {
+        const nextUsers = [...d.users];
+        nextUsers[idx] = { ...nextUsers[idx], ...syncedUser };
+        return { ...d, users: nextUsers };
+      }
+      return { ...d, users: [syncedUser, ...d.users] };
+    });
+  }, []);
+
   const value = useMemo<StoreValue>(
     () => ({
       ...data,
       hydrated,
+      syncUser,
       addUser: (u) => {
         const user: User = { ...u, id: id("usr"), createdAt: new Date().toISOString().slice(0, 10) };
         setData((d) => ({ ...d, users: [user, ...d.users] }));
         log("Created a new user account", user.name);
+
+        // Async sync to MongoDB
+        createAdminUserFn({ data: user }).catch(() => {});
         return user;
       },
-      updateUser: (uid, patch) =>
+      updateUser: (uid, patch) => {
         setData((d) => ({
           ...d,
           users: d.users.map((u) => (u.id === uid ? { ...u, ...patch } : u)),
-        })),
-      deleteUser: (uid) => setData((d) => ({ ...d, users: d.users.filter((u) => u.id !== uid) })),
+        }));
+        // Async sync to MongoDB
+        updateAdminUserFn({ data: { id: uid, patch } }).catch(() => {});
+      },
+      deleteUser: (uid) => {
+        setData((d) => ({ ...d, users: d.users.filter((u) => u.id !== uid) }));
+        // Async delete from MongoDB
+        deleteAdminUserFn({ data: { id: uid } }).catch(() => {});
+      },
       addPlan: (p) => {
         const plan: Plan = { ...p, id: id("plan"), createdAt: new Date().toISOString().slice(0, 10) };
         setData((d) => ({ ...d, plans: [plan, ...d.plans] }));

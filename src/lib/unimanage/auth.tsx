@@ -14,6 +14,7 @@ export interface Session {
 
 const DEMO = { username: "superadmin", password: "adminpass" };
 const KEY = "unimanage.session";
+const CLERK_PUBLISHABLE_KEY = import.meta.env["VITE_CLERK_PUBLISHABLE_KEY"];
 
 interface AuthValue {
   session: Session | null;
@@ -43,8 +44,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // ClerkProvider not mounted or not active
   }
 
+  const isClerkConfigured = Boolean(
+    CLERK_PUBLISHABLE_KEY &&
+    CLERK_PUBLISHABLE_KEY.startsWith("pk_") &&
+    !CLERK_PUBLISHABLE_KEY.includes("YOUR_CLERK_PUBLISHABLE_KEY_HERE")
+  );
+
   useEffect(() => {
     let cancelled = false;
+
+    // Check if there is an existing admin/local session in storage
+    let localSession: Session | null = null;
+    try {
+      const raw = localStorage.getItem(KEY) ?? sessionStorage.getItem(KEY);
+      if (raw) localSession = JSON.parse(raw) as Session;
+    } catch {
+      /* ignore corrupt session */
+    }
+
+    // If Clerk is configured, wait until Clerk has finished loading before finalizing state
+    if (isClerkConfigured && !isClerkLoaded) {
+      if (localSession) {
+        // If local admin session exists, we can activate it immediately
+        setSession(localSession);
+        setReady(true);
+      }
+      return;
+    }
 
     if (isClerkLoaded && clerkUser) {
       const emailStr: string = clerkUser.primaryEmailAddress?.emailAddress || "";
@@ -56,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ) as string;
       const nameStr: string = (clerkUser.fullName || clerkUser.firstName || "User") as string;
 
-      // 1. Instantly activate session to eliminate 2-4s spinner delay
+      // 1. Instantly activate session to eliminate spinner delay
       const initialClerkSession: Session = {
         username: usernameStr,
         name: nameStr,
@@ -84,18 +110,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    try {
-      const raw = localStorage.getItem(KEY) ?? sessionStorage.getItem(KEY);
-      if (raw) setSession(JSON.parse(raw) as Session);
-    } catch {
-      /* ignore corrupt session */
-    }
+    // Clerk is not logged in, fallback to local session if any
+    setSession(localSession);
     setReady(true);
 
     return () => {
       cancelled = true;
     };
-  }, [isClerkLoaded, clerkUser?.id]);
+  }, [isClerkConfigured, isClerkLoaded, clerkUser?.id]);
 
   const signIn: AuthValue["signIn"] = (username, password, remember) => {
     if (username.trim().toLowerCase() !== DEMO.username || password !== DEMO.password) return null;

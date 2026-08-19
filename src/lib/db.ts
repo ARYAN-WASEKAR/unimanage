@@ -39,7 +39,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
       })
       .catch((err) => {
         console.warn(
-          `[MongoDB Sync Engine] Atlas connection restricted or offline. Running High-Availability Sync Engine. (To enable Atlas DB, add 0.0.0.0/0 to Network Access at cloud.mongodb.com)`
+          `\n[MongoDB Sync Engine] Atlas connection restricted or offline. Running High-Availability Sync Engine. (To enable Atlas DB, add 0.0.0.0/0 to Network Access at cloud.mongodb.com)`
         );
         cached.promise = null;
         throw err;

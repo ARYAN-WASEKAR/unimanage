@@ -213,7 +213,7 @@ function UserDetailPage() {
             <div className="flex items-center justify-between gap-4 px-5 py-3">
               <dt className="text-muted-foreground">Service</dt>
               <dd className="font-medium">
-                {SERVICE_META[user.service].emoji} {SERVICE_META[user.service].name}
+                {SERVICE_META[user.service || "combined"]?.emoji || "🧩"} {SERVICE_META[user.service || "combined"]?.name || "Combined Management"}
               </dd>
             </div>
             <div className="flex items-center justify-between gap-4 px-5 py-3">

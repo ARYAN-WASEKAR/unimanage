@@ -228,7 +228,15 @@ function UsersPage() {
                         params={{ userId: u.id }}
                         className="flex items-center gap-3"
                       >
-                        <InitialsAvatar name={u.name} />
+                        {u.avatar ? (
+                          <img
+                            src={u.avatar}
+                            alt={u.name}
+                            className="size-8 rounded-full object-cover border border-border shrink-0"
+                          />
+                        ) : (
+                          <InitialsAvatar name={u.name} />
+                        )}
                         <span className="leading-tight">
                           <span className="block font-medium">{u.name}</span>
                           <span className="block text-xs text-muted-foreground">{u.email}</span>
@@ -236,8 +244,8 @@ function UsersPage() {
                       </Link>
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
-                      {SERVICE_META[u.service].emoji}{" "}
-                      {SERVICE_META[u.service].name.replace(" Management", "")}
+                      {SERVICE_META[u.service || "combined"]?.emoji || "🧩"}{" "}
+                      {(SERVICE_META[u.service || "combined"]?.name || "Combined Management").replace(" Management", "")}
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">{planMap[u.planId]?.name ?? "—"}</td>
                     <td className="px-5 py-3">

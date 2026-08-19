@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { AuthProvider } from "@/lib/unimanage/auth";
-import { StoreProvider } from "@/lib/unimanage/store";
+import { AuthProvider, useAuth } from "@/lib/unimanage/auth";
+import { StoreProvider, useStore } from "@/lib/unimanage/store";
 import { ThemeProvider } from "@/lib/unimanage/theme";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -145,6 +145,42 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function UserSyncTracker() {
+  const { session } = useAuth();
+  const { syncUser } = useStore();
+
+  useEffect(() => {
+    if (!session) return;
+    // Skip default demo SuperAdmin credentials
+    if (session.username === "superadmin" && session.role === "SUPER_ADMIN" && !session.isClerk) {
+      return;
+    }
+
+    // Automatically sync logged-in customer/user to MongoDB and store
+    import("@/lib/user.server")
+      .then(({ syncLoggedInUserFn }) =>
+        syncLoggedInUserFn({
+          data: {
+            email: session.email,
+            name: session.name,
+            username: session.username,
+            avatar: session.avatar,
+          },
+        }),
+      )
+      .then((res) => {
+        if (res?.user) {
+          syncUser(res.user);
+        }
+      })
+      .catch((err) => {
+        console.warn("[UserSyncTracker] User sync notice:", err?.message || err);
+      });
+  }, [session?.email, session?.username, session?.name, session?.avatar, session?.isClerk, syncUser]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -154,6 +190,7 @@ function RootComponent() {
         <ClerkAppProvider>
           <AuthProvider>
             <StoreProvider>
+              <UserSyncTracker />
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <Outlet />
               <Toaster position="top-right" richColors closeButton />

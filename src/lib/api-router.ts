@@ -1,5 +1,6 @@
 import { connectToDatabase, getMongoDbStatus } from "@/lib/db";
 import { SuperAdmin } from "@/models/SuperAdmin";
+import { User } from "@/models/User";
 import bcrypt from "bcryptjs";
 
 // In-memory fallback store for API testing when local MongoDB service is off
@@ -355,6 +356,67 @@ export async function handleApiRequest(request: Request): Promise<Response | nul
 
       const removed = fallbackAdminsStore.splice(idx, 1)[0];
       return json({ success: true, message: `SuperAdmin '${removed.name}' deleted successfully.` });
+    }
+
+    // 8. GET /api/users - Fetch All Users
+    if (pathname === "/api/users" && method === "GET") {
+      try {
+        await connectToDatabase();
+        const list = await User.find().sort({ createdAt: -1 });
+        return json({ success: true, count: list.length, data: list.map((u) => u.toJSON()) });
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, 500);
+      }
+    }
+
+    // 9. POST /api/users/sync or POST /api/users - Upsert / Sync User
+    if ((pathname === "/api/users/sync" || pathname === "/api/users") && method === "POST") {
+      const body = await request.json().catch(() => ({}));
+      const emailClean = (body.email || "").toLowerCase().trim();
+      const usernameClean = (body.username || (emailClean ? emailClean.split("@")[0] : "user")).toLowerCase().trim();
+
+      try {
+        await connectToDatabase();
+        const orConditions: any[] = [];
+        if (body.clerkUserId) orConditions.push({ clerkUserId: body.clerkUserId });
+        if (emailClean) orConditions.push({ email: emailClean });
+        if (usernameClean) orConditions.push({ username: usernameClean });
+
+        let existing = orConditions.length > 0 ? await User.findOne({ $or: orConditions }) : null;
+
+        if (existing) {
+          if (body.name) existing.name = body.name;
+          if (body.phone) existing.phone = body.phone;
+          if (body.avatar) existing.avatar = body.avatar;
+          if (body.service) existing.service = body.service;
+          if (body.planId) existing.planId = body.planId;
+          if (body.businessName) existing.businessName = body.businessName;
+          if (body.businessAddress) existing.businessAddress = body.businessAddress;
+          await existing.save();
+          return json({ success: true, message: "User synced successfully", data: existing.toJSON() });
+        }
+
+        const created = await User.create({
+          name: body.name || "User",
+          email: emailClean || `${usernameClean}@unimanage.app`,
+          username: usernameClean,
+          phone: body.phone || "+91 98765-43210",
+          avatar: body.avatar || "",
+          clerkUserId: body.clerkUserId || "",
+          status: body.status || "active",
+          role: body.role || "USER",
+          service: body.service || "combined",
+          planId: body.planId || "plan-comb-pro",
+          businessName: body.businessName || `${body.name || "User"}'s Store`,
+          businessAddress: body.businessAddress || "MG Road, Mumbai, IN",
+          startDate: body.startDate || new Date().toISOString().slice(0, 10),
+          expiryDate: body.expiryDate || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+        });
+
+        return json({ success: true, message: "User created & synced successfully", data: created.toJSON() }, 201);
+      } catch (err: any) {
+        return json({ success: false, error: err.message }, 400);
+      }
     }
 
     return json({ success: false, error: `API endpoint ${method} ${pathname} not found.` }, 404);

@@ -18,30 +18,57 @@ export const Route = createFileRoute("/user/profile")({
 
 function UserProfilePage() {
   const { session } = useAuth();
-  const { users, updateUser } = useStore();
+  const { users, updateUser, syncUser } = useStore();
 
   const user = users.find(
     (u) =>
-      u.email.toLowerCase() === session?.email.toLowerCase() ||
-      u.username.toLowerCase() === session?.username.toLowerCase(),
-  ) || users[0];
+      (session?.email && u.email.toLowerCase() === session.email.toLowerCase()) ||
+      (session?.username && u.username.toLowerCase() === session.username.toLowerCase()),
+  );
 
   const [name, setName] = useState(user?.name || session?.name || "");
   const [phone, setPhone] = useState(user?.phone || "+91 98765-43210");
-  const [businessName, setBusinessName] = useState(user?.businessName || `${name}'s Store`);
+  const [businessName, setBusinessName] = useState(user?.businessName || `${session?.name || "User"}'s Store`);
   const [businessAddress, setBusinessAddress] = useState(user?.businessAddress || "MG Road, Mumbai, IN");
-  const [service, setService] = useState<ServiceKey>(user?.service || "medical");
+  const [service, setService] = useState<ServiceKey>(user?.service || "combined");
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name);
+      if (user.phone) setPhone(user.phone);
+      if (user.businessName) setBusinessName(user.businessName);
+      if (user.businessAddress) setBusinessAddress(user.businessAddress);
+      if (user.service) setService(user.service);
+    }
+  }, [user?.id, user?.name, user?.phone, user?.businessName, user?.businessAddress, user?.service]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-    updateUser(user.id, {
+    const targetId = user?.id || `usr-${Date.now()}`;
+    const patch = {
       name,
       phone,
       businessName,
       businessAddress,
       service,
-    });
+      email: session?.email || user?.email || "",
+      username: session?.username || user?.username || "user",
+    };
+
+    if (user) {
+      updateUser(user.id, patch);
+    } else {
+      syncUser({
+        id: targetId,
+        status: "active",
+        role: "USER",
+        planId: "plan-comb-pro",
+        startDate: new Date().toISOString().slice(0, 10),
+        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+        createdAt: new Date().toISOString().slice(0, 10),
+        ...patch,
+      });
+    }
     toast.success("Profile & Business details updated successfully!");
   };
 

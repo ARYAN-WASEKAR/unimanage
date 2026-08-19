@@ -61,12 +61,14 @@ app.post("/api/webhooks/clerk", (req, res) => {
 });
 
 import userPortalRoutes from "./routes/userPortalRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 // Mount Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/superadmin", authRoutes); // Aliased for /api/superadmin/login
 app.use("/api/superadmin", superAdminRoutes); // Aliased for /api/superadmin/create
 app.use("/api/superadmins", superAdminRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/user", userPortalRoutes);
 
 // Start Express Server
