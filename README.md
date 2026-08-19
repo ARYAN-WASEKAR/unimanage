@@ -62,7 +62,7 @@ Tailored workflows for multiple retail & service industries:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/unimanage.git
+git clone https://github.com/ARYAN-WASEKAR/unimanage.git
 cd unimanage
 ```
 
